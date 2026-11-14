@@ -82,15 +82,23 @@
         </section>
 
         <!-- Section 3: Debts -->
-        <section id="section-debts" class="space-y-3 hidden">
-            <h2 class="text-base font-bold text-red-400">အကြွေးစာရင်း</h2>
+        <section id="section-debts" class="space-y-4 hidden">
+            <div class="flex flex-wrap justify-between items-center bg-red-950/40 border border-red-500/40 p-4 rounded-xl shadow">
+                <div>
+                    <h2 class="text-base font-bold text-red-400">စုစုပေါင်း အကြွေးစာရင်း (အားလုံးပေါင်း)</h2>
+                    <p class="text-xs text-slate-400">ငွေပေးချေရန် ကျန်ရှိနေသည့် စုစုပေါင်းပမာဏ</p>
+                </div>
+                <div class="text-right">
+                    <span id="grandTotalDebt" class="text-2xl font-extrabold text-red-400">0 THB</span>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="debtCardsGrid"></div>
         </section>
 
         <!-- Section 4: Menu Manager -->
         <section id="section-menuManager" class="space-y-3 hidden">
             <div class="flex justify-between items-center">
-                <h2 class="text-base font-bold text-amber-400">မီနူးများ စီမံရန် (TRUE = အစိမ်း, FALSE = အနီ)</h2>
+                <h2 class="text-base font-bold text-amber-400">မီနူးများ စီမံရန် (ရရှိ = အစိမ်း, မရရှိ = အနီ)</h2>
                 <div class="flex gap-2">
                     <button onclick="addNewMenuRow()" class="bg-green-600 text-white text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-plus"></i> မီနူးအသစ်</button>
                     <button id="saveMenuBtn" onclick="saveMenuToSheet()" class="bg-amber-500 text-slate-900 text-xs font-bold px-4 py-2 rounded-lg">သိမ်းဆည်းမည်</button>
@@ -100,7 +108,7 @@
                 <table class="w-full text-left text-xs text-slate-300">
                     <thead class="bg-slate-900/80 text-slate-400 uppercase font-bold">
                         <tr>
-                            <th class="p-3">အခြေအနေ (TRUE/FALSE)</th>
+                            <th class="p-3">အခြေအနေ (ရရှိ / မရရှိ)</th>
                             <th class="p-3">ကုဒ်</th>
                             <th class="p-3">အမည်</th>
                             <th class="p-3">ဈေးနှုန်း</th>
@@ -156,6 +164,7 @@
                         document.getElementById("alertSound").play().catch(e => {});
                         renderOrders(res.orders);
                         renderApprovals(res.pendingUsers);
+                        renderDebts(res.orders);
                         lastOrderCount = res.orders.length;
                     }
                 }
@@ -234,23 +243,32 @@
 
         function renderDebts(orders) {
             const debtMap = {};
+            let grandTotal = 0;
             if (orders) {
                 orders.forEach(o => {
                     if (o.paymentType === 'အကြွေး' && o.deliveryStatus !== 'ကုန်သွားပြီး') {
+                        const amount = Number(o.total) || 0;
+                        grandTotal += amount;
                         if (!debtMap[o.customer]) debtMap[o.customer] = { room: o.room, totalDebt: 0, count: 0 };
-                        debtMap[o.customer].totalDebt += Number(o.total) || 0;
+                        debtMap[o.customer].totalDebt += amount;
                         debtMap[o.customer].count += 1;
                     }
                 });
             }
+
+            document.getElementById("grandTotalDebt").innerText = grandTotal.toLocaleString() + " THB";
+
             const grid = document.getElementById("debtCardsGrid");
             const keys = Object.keys(debtMap);
-            if (keys.length === 0) { grid.innerHTML = `<p class="text-xs text-slate-500">အကြွေးကျန်ရှိသူ မရှိပါ။</p>`; return; }
+            if (keys.length === 0) { 
+                grid.innerHTML = `<p class="text-xs text-slate-500">အကြွေးကျန်ရှိသူ မရှိပါ။</p>`; 
+                return; 
+            }
             grid.innerHTML = keys.map(cust => `
                 <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center">
                     <div>
                         <h3 class="font-bold text-amber-400 text-sm">${cust}</h3>
-                        <p class="text-xs text-slate-400">အကြိမ်ရေ: ${debtMap[cust].count} ကြိမ်</p>
+                        <p class="text-xs text-slate-400">အခန်း: ${debtMap[cust].room} | အကြိမ်ရေ: ${debtMap[cust].count} ကြိမ်</p>
                     </div>
                     <div class="text-right">
                         <span class="text-xl font-extrabold text-red-400">${debtMap[cust].totalDebt.toLocaleString()} THB</span>
@@ -259,21 +277,28 @@
             `).join('');
         }
 
-        // TRUE ဆိုလျှင် အစိမ်းရောင်၊ FALSE ဆိုလျှင် အနီရောင်ပေါ်စေမည့် ဇယားဆွဲဖန်ရှင်
+        // ရရှိ (အစိမ်း) / မရရှိ (အနီ) ခလုတ်ဖြင့် မီနူးစီမံခြင်း
         function renderMenuManager(menus) {
             const tbody = document.getElementById("menuManageTable");
             tbody.innerHTML = (menus || []).map(m => {
-                const isTrue = m.status;
-                const badgeClass = isTrue 
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold' 
-                    : 'bg-red-500/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded font-bold';
+                const isAvailable = m.status;
+                const badgeClass = isAvailable 
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[75px]' 
+                    : 'bg-red-500/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[75px]';
 
                 return `
                 <tr class="menu-row">
                     <td class="p-2 whitespace-nowrap">
                         <label class="inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="menu-status w-5 h-5 accent-green-600 sr-only" ${isTrue ? 'checked' : ''} onchange="this.parentElement.nextElementSibling.innerText = this.checked ? 'TRUE' : 'FALSE'; this.parentElement.nextElementSibling.className = this.checked ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[70px]' : 'bg-red-500/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[70px]';">
-                            <span class="${badgeClass} text-center inline-block min-w-[70px]">${isTrue ? 'TRUE' : 'FALSE'}</span>
+                            <input type="checkbox" class="menu-status sr-only" ${isAvailable ? 'checked' : ''} 
+                                onchange="
+                                    const badge = this.nextElementSibling;
+                                    badge.innerText = this.checked ? 'ရရှိ' : 'မရရှိ';
+                                    badge.className = this.checked 
+                                        ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[75px]' 
+                                        : 'bg-red-500/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[75px]';
+                                ">
+                            <span class="${badgeClass}">${isAvailable ? 'ရရှိ' : 'မရရှိ'}</span>
                         </label>
                     </td>
                     <td class="p-2"><input type="text" value="${m.code}" class="menu-code bg-slate-700 px-2 py-1 rounded w-16 text-xs text-white"></td>
@@ -296,8 +321,15 @@
             row.innerHTML = `
                 <td class="p-2 whitespace-nowrap">
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="menu-status w-5 h-5 accent-green-600 sr-only" checked onchange="this.parentElement.nextElementSibling.innerText = this.checked ? 'TRUE' : 'FALSE'; this.parentElement.nextElementSibling.className = this.checked ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[70px]' : 'bg-red-500/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[70px]';">
-                        <span class="bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[70px]">TRUE</span>
+                        <input type="checkbox" class="menu-status sr-only" checked 
+                            onchange="
+                                const badge = this.nextElementSibling;
+                                badge.innerText = this.checked ? 'ရရှိ' : 'မရရှိ';
+                                badge.className = this.checked 
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[75px]' 
+                                    : 'bg-red-500/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[75px]';
+                            ">
+                        <span class="bg-green-500/20 text-green-400 border border-green-500/40 px-3 py-1.5 rounded font-bold text-center inline-block min-w-[75px]">ရရှိ</span>
                     </label>
                 </td>
                 <td class="p-2"><input type="text" placeholder="ကုဒ်" class="menu-code bg-slate-700 px-2 py-1 rounded w-16 text-xs text-white"></td>
@@ -312,7 +344,6 @@
             tbody.appendChild(row);
         }
 
-      // ပုံအရွယ်အစားကို အပြည့်အဝ ချုံ့ပေးမည့် Image Compressor
         function compressImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -320,13 +351,12 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement("canvas");
-                        const maxWidth = 200; // ပုံအကျယ်ကို 200px သို့ ချုံ့မည် (ဒေတာအရွယ်အစားသေးငယ်စေရန်)
+                        const maxWidth = 200;
                         const scale = maxWidth / img.width;
                         canvas.width = maxWidth;
                         canvas.height = img.height * scale;
                         const ctx = canvas.getContext("2d");
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        // JPEG 0.6 အရည်အသွေးဖြင့် ချုံ့ထုတ်မည်
                         resolve(canvas.toDataURL("image/jpeg", 0.6));
                     };
                     img.src = event.target.result;
@@ -347,7 +377,6 @@
                     const fileInput = r.querySelector(".menu-image-file");
                     let imageStr = r.querySelector(".menu-image-url").value;
 
-                    // အကယ်၍ ပုံအသစ် ရွေးချယ်ထားပါက Compressor ဖြင့် ချုံ့မည်
                     if (fileInput.files && fileInput.files[0]) {
                         imageStr = await compressImage(fileInput.files[0]);
                     }
@@ -370,7 +399,7 @@
                     alert("❌ အမှားရှိပါသည်: " + res.message);
                 }
             } catch (err) {
-                alert("❌ ချိတ်ဆက်မှု အမှား (ပုံအရွယ်အစား ကြီးလွန်းနေပါက ပုံအသေးကို ရွေးပါ): " + err.message);
+                alert("❌ ချိတ်ဆက်မှု အမှား: " + err.message);
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = 'သိမ်းဆည်းမည်';
