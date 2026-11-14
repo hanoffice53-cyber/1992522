@@ -312,7 +312,7 @@
             tbody.appendChild(row);
         }
 
-        // ပုံအရွယ်အစားကို ချုံ့ပေးမည့် Compressor (Image size reduction)
+      // ပုံအရွယ်အစားကို အပြည့်အဝ ချုံ့ပေးမည့် Image Compressor
         function compressImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -320,13 +320,14 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement("canvas");
-                        const maxWidth = 300;
+                        const maxWidth = 200; // ပုံအကျယ်ကို 200px သို့ ချုံ့မည် (ဒေတာအရွယ်အစားသေးငယ်စေရန်)
                         const scale = maxWidth / img.width;
                         canvas.width = maxWidth;
                         canvas.height = img.height * scale;
                         const ctx = canvas.getContext("2d");
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL("image/jpeg", 0.7));
+                        // JPEG 0.6 အရည်အသွေးဖြင့် ချုံ့ထုတ်မည်
+                        resolve(canvas.toDataURL("image/jpeg", 0.6));
                     };
                     img.src = event.target.result;
                 };
@@ -338,7 +339,7 @@
             const rows = document.querySelectorAll(".menu-row");
             const saveBtn = document.getElementById("saveMenuBtn");
             saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> သိမ်းဆည်းနေပါသည်...';
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ပုံနှင့် မီနူးများ သိမ်းဆည်းနေပါသည်...';
 
             try {
                 const menus = [];
@@ -346,6 +347,7 @@
                     const fileInput = r.querySelector(".menu-image-file");
                     let imageStr = r.querySelector(".menu-image-url").value;
 
+                    // အကယ်၍ ပုံအသစ် ရွေးချယ်ထားပါက Compressor ဖြင့် ချုံ့မည်
                     if (fileInput.files && fileInput.files[0]) {
                         imageStr = await compressImage(fileInput.files[0]);
                     }
@@ -359,6 +361,7 @@
                         image: imageStr
                     });
                 }
+
                 const res = await callBackend({ action: "saveMenus", menus: menus });
                 if (res.status === "success") { 
                     alert("✅ မီနူးများနှင့် ပုံများ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"); 
@@ -367,7 +370,7 @@
                     alert("❌ အမှားရှိပါသည်: " + res.message);
                 }
             } catch (err) {
-                alert("❌ ချိတ်ဆက်မှု အမှား: " + err.message);
+                alert("❌ ချိတ်ဆက်မှု အမှား (ပုံအရွယ်အစား ကြီးလွန်းနေပါက ပုံအသေးကို ရွေးပါ): " + err.message);
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = 'သိမ်းဆည်းမည်';
