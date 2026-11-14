@@ -81,11 +81,11 @@
             </div>
         </section>
 
-        <!-- Section 3: Debts -->
+        <!-- Section 3: Debts (စုစုပေါင်း ရရန်အကြွေး ပါဝင်သည်) -->
         <section id="section-debts" class="space-y-4 hidden">
             <div class="flex flex-wrap justify-between items-center bg-red-950/40 border border-red-500/40 p-4 rounded-xl shadow">
                 <div>
-                    <h2 class="text-base font-bold text-red-400">စုစုပေါင်း အကြွေးစာရင်း (အားလုံးပေါင်း)</h2>
+                    <h2 class="text-base font-bold text-red-400">စုစုပေါင်း ရရန်အကြွေး (အားလုံးပေါင်း)</h2>
                     <p class="text-xs text-slate-400">ငွေပေးချေရန် ကျန်ရှိနေသည့် စုစုပေါင်းပမာဏ</p>
                 </div>
                 <div class="text-right">
@@ -95,7 +95,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="debtCardsGrid"></div>
         </section>
 
-        <!-- Section 4: Menu Manager -->
+        <!-- Section 4: Menu Manager (ရရှိ / မရရှိ အဖွင့်အပိတ်) -->
         <section id="section-menuManager" class="space-y-3 hidden">
             <div class="flex justify-between items-center">
                 <h2 class="text-base font-bold text-amber-400">မီနူးများ စီမံရန် (ရရှိ = အစိမ်း, မရရှိ = အနီ)</h2>
@@ -277,7 +277,7 @@
             `).join('');
         }
 
-        // ရရှိ (အစိမ်း) / မရရှိ (အနီ) ခလုတ်ဖြင့် မီနူးစီမံခြင်း
+        // မီနူးအဖွင့်/အပိတ် (ရရှိ = အစိမ်း, မရရှိ = အနီ) ဖြင့် စီမံခြင်း
         function renderMenuManager(menus) {
             const tbody = document.getElementById("menuManageTable");
             tbody.innerHTML = (menus || []).map(m => {
