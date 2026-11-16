@@ -34,6 +34,7 @@
             <button onclick="switchTab('approvals')" id="tab-approvals" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">အကောင့်အတည်ပြုရန် (<span id="pendingCount">0</span>)</button>
             <button onclick="switchTab('debts')" id="tab-debts" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">အကြွေးစာရင်း</button>
             <button onclick="switchTab('menuManager')" id="tab-menuManager" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">မီနူး စီမံရန်</button>
+            <button onclick="switchTab('announcement')" id="tab-announcement" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">ကြော်ငြာစာတမ်း</button>
         </div>
 
         <!-- Section 1: Orders -->
@@ -121,6 +122,23 @@
             </div>
         </section>
 
+        <!-- Section 5: Announcement Manager (ကြော်ငြာစာတမ်း စီမံရန်) -->
+        <section id="section-announcement" class="space-y-4 hidden">
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl space-y-4 shadow max-w-2xl">
+                <h2 class="text-base font-bold text-amber-400"><i class="fa-solid fa-bullhorn mr-2"></i>ဖောက်သည်များ မြင်ရမည့် အောက်ခြေကြော်ငြာစာတမ်း စီမံရန်</h2>
+                <p class="text-xs text-slate-400">ဖောက်သည်များ၏ မှာယူသည့်မျက်နှာပြင် အောက်ဆုံးတွင် ရွေ့လျားပြသပေးမည့် ကြော်ငြာစာသားကို ဤနေရာတွင် ရေးသားပြင်ဆင်နိုင်ပါသည်။</p>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-2">ကြော်ငြာစာသား (Announcement Text)</label>
+                    <textarea id="announcementInput" rows="3" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="ဥပမာ - ဝက်ခေါင်းသုတ် ညနေ ၅ နာရီ ရပါမည်။"></textarea>
+                </div>
+
+                <button onclick="saveAnnouncementText()" id="saveAnnouncementBtn" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-5 py-2.5 rounded-lg text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> ကြော်ငြာစာတမ်း သိမ်းဆည်းမည်
+                </button>
+            </div>
+        </section>
+
     </main>
 
     <audio id="alertSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
@@ -151,6 +169,9 @@
                     renderApprovals(res.pendingUsers);
                     renderDebts(res.orders);
                     renderMenuManager(res.menus);
+                    if (res.announcement !== undefined) {
+                        document.getElementById("announcementInput").value = res.announcement;
+                    }
                     lastOrderCount = res.orders.length;
                 }
             } catch (err) { console.error(err); }
@@ -172,7 +193,7 @@
         }
 
         function switchTab(tab) {
-            ['orders', 'approvals', 'debts', 'menuManager'].forEach(t => {
+            ['orders', 'approvals', 'debts', 'menuManager', 'announcement'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.toggle("hidden", t !== tab);
                 document.getElementById(`tab-${t}`).className = t === tab 
                     ? "pb-2.5 border-b-2 border-amber-500 font-bold text-amber-500 text-sm whitespace-nowrap" 
@@ -341,6 +362,28 @@
                 <td class="p-2"><input type="text" placeholder="Tag" class="menu-tag bg-slate-700 px-2 py-1 rounded w-24 text-xs text-white"></td>
             `;
             tbody.appendChild(row);
+        }
+
+        async function saveAnnouncementText() {
+            const text = document.getElementById("announcementInput").value.trim();
+            const btn = document.getElementById("saveAnnouncementBtn");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> သိမ်းဆည်းနေပါသည်...';
+            
+            try {
+                const res = await callBackend({ action: "saveAnnouncement", announcement: text });
+                if (res.status === "success") {
+                    alert("✅ ကြော်ငြာစာတမ်း အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။");
+                    refreshAll();
+                } else {
+                    alert("❌ အမှားရှိပါသည်: " + res.message);
+                }
+            } catch (err) {
+                alert("❌ ချိတ်ဆက်မှု အမှား: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ကြော်ငြာစာတမ်း သိမ်းဆည်းမည်';
+            }
         }
 
         function compressImage(file) {
