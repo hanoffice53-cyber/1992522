@@ -28,10 +28,11 @@
 
     <main class="max-w-7xl mx-auto px-4 py-5 flex-grow w-full space-y-5">
         <div class="flex border-b border-slate-700 space-x-6 overflow-x-auto">
-            <button onclick="switchTab('orders')" id="tab-orders" class="pb-2.5 border-b-2 border-amber-500 font-bold text-amber-500 text-sm">အော်ဒါစာရင်းများ</button>
-            <button onclick="switchTab('approvals')" id="tab-approvals" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm">အကောင့်အတည်ပြုရန် (<span id="pendingCount">0</span>)</button>
-            <button onclick="switchTab('menuManager')" id="tab-menuManager" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm">မီနူး စီမံရန်</button>
-            <button onclick="switchTab('announcement')" id="tab-announcement" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm">ကြော်ငြာစာတမ်း</button>
+            <button onclick="switchTab('orders')" id="tab-orders" class="pb-2.5 border-b-2 border-amber-500 font-bold text-amber-500 text-sm whitespace-nowrap">အော်ဒါစာရင်းများ</button>
+            <button onclick="switchTab('approvals')" id="tab-approvals" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">အကောင့်အတည်ပြုရန် (<span id="pendingCount">0</span>)</button>
+            <button onclick="switchTab('debts')" id="tab-debts" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">အကြွေးစာရင်း</button>
+            <button onclick="switchTab('menuManager')" id="tab-menuManager" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">မီနူး စီမံရန်</button>
+            <button onclick="switchTab('announcement')" id="tab-announcement" class="pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap">ကြော်ငြာစာတမ်း</button>
         </div>
 
         <!-- Orders Section -->
@@ -39,7 +40,7 @@
             <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-300">
                     <thead class="bg-slate-900/80 text-slate-400 uppercase font-bold">
-                        <tr><th class="p-3">နေ့စွဲ</th><th class="p-3">အော်ဒါ ID</th><th class="p-3">ကဒ်</th><th class="p-3">အခန်း</th><th class="p-3">ဟင်းပွဲများ</th><th class="p-3">စုစုပေါင်း</th><th class="p-3">အခြေအနေ</th></tr>
+                        <tr><th class="p-3">နေ့စွဲ</th><th class="p-3">အော်ဒါ ID</th><th class="p-3">ကဒ်</th><th class="p-3">အခန်း</th><th class="p-3">ဟင်းပွဲများ</th><th class="p-3">စုစုပေါင်း</th><th class="p-3">ငွေချေစနစ်</th><th class="p-3">အခြေအနေ</th></tr>
                     </thead>
                     <tbody id="ordersTable" class="divide-y divide-slate-700"></tbody>
                 </table>
@@ -58,14 +59,31 @@
             </div>
         </section>
 
+        <!-- Debts Section -->
+        <section id="section-debts" class="space-y-4 hidden">
+            <div class="bg-red-950/40 border border-red-500/40 p-4 rounded-xl flex justify-between items-center shadow">
+                <div>
+                    <h2 class="text-base font-bold text-red-400">စုစုပေါင်း ရရန်အကြွေး (အားလုံးပေါင်း)</h2>
+                    <p class="text-xs text-slate-400">ငွေပေးချေရန် ကျန်ရှိနေသည့် စုစုပေါင်းပမာဏ</p>
+                </div>
+                <div class="text-right">
+                    <span id="grandTotalDebt" class="text-2xl font-extrabold text-red-400">0 THB</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="debtCardsGrid"></div>
+        </section>
+
         <!-- Menu Manager Section -->
         <section id="section-menuManager" class="space-y-3 hidden">
             <div class="flex justify-between items-center">
-                <button onclick="addNewMenuRow()" class="bg-green-600 text-white text-xs px-3 py-2 rounded-lg">+ မီနူးအသစ်</button>
-                <button onclick="saveMenuToSheet()" class="bg-amber-500 text-slate-900 text-xs px-4 py-2 rounded-lg font-bold">သိမ်းဆည်းမည်</button>
+                <button onclick="addNewMenuRow()" class="bg-green-600 text-white text-xs px-3 py-2 rounded-lg font-bold"><i class="fa-solid fa-plus"></i> မီနူးအသစ်</button>
+                <button id="saveMenuBtn" onclick="saveMenuToSheet()" class="bg-amber-500 text-slate-900 text-xs px-4 py-2 rounded-lg font-bold">သိမ်းဆည်းမည်</button>
             </div>
             <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto p-3">
                 <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900/80 text-slate-400 uppercase font-bold">
+                        <tr><th class="p-3">အခြေအနေ</th><th class="p-3">ကုဒ်</th><th class="p-3">အမည်</th><th class="p-3">ဈေးနှုန်း</th><th class="p-3">ပုံ (Image File)</th><th class="p-3">Tag</th></tr>
+                    </thead>
                     <tbody id="menuManageTable" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
@@ -73,13 +91,16 @@
 
         <!-- Announcement Section -->
         <section id="section-announcement" class="space-y-4 hidden">
-            <textarea id="announcementInput" rows="3" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-sm text-white" placeholder="ကြော်ငြာစာသား..."></textarea>
-            <button onclick="saveAnnouncementText()" class="bg-amber-500 text-slate-900 font-bold px-5 py-2 rounded-lg text-xs">ကြော်ငြာစာတမ်း သိမ်းဆည်းမည်</button>
+            <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl space-y-4 max-w-2xl">
+                <h2 class="text-base font-bold text-amber-400">ဖောက်သည်များ မြင်ရမည့် အောက်ခြေကြော်ငြာစာတမ်း</h2>
+                <textarea id="announcementInput" rows="3" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="ကြော်ငြာစာသား..."></textarea>
+                <button onclick="saveAnnouncementText()" id="saveAnnouncementBtn" class="bg-amber-500 text-slate-900 font-bold px-5 py-2.5 rounded-lg text-xs">ကြော်ငြာစာတမ်း သိမ်းဆည်းမည်</button>
+            </div>
         </section>
     </main>
 
     <script>
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyyWEPCNWP7crdfRJdm2yCWrCzuctsqAV_uUoDWJJrhPiN7CDFre9IyRSkB4uFPC-ie/exec"; // သင့် GAS Web App URL ထည့်ရန်
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyyWEPCNWP7crdfRJdm2yCWrCzuctsqAV_uUoDWJJrhPiN7CDFre9IyRSkB4uFPC-ie/exec";
         const CORRECT_ADMIN_PWD = "0947301953";
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -114,15 +135,16 @@
             if (res.status === "success") {
                 renderOrders(res.orders);
                 renderApprovals(res.pendingUsers);
+                renderDebts(res.orders);
                 renderMenuManager(res.menus);
                 document.getElementById("announcementInput").value = res.announcement || "";
             }
         }
 
         function switchTab(tab) {
-            ['orders', 'approvals', 'menuManager', 'announcement'].forEach(t => {
+            ['orders', 'approvals', 'debts', 'menuManager', 'announcement'].forEach(t => {
                 document.getElementById(`section-${t}`).classList.toggle("hidden", t !== tab);
-                document.getElementById(`tab-${t}`).className = t === tab ? "pb-2.5 border-b-2 border-amber-500 font-bold text-amber-500 text-sm" : "pb-2.5 border-b-2 border-transparent text-slate-400 text-sm";
+                document.getElementById(`tab-${t}`).className = t === tab ? "pb-2.5 border-b-2 border-amber-500 font-bold text-amber-500 text-sm whitespace-nowrap" : "pb-2.5 border-b-2 border-transparent text-slate-400 text-sm whitespace-nowrap";
             });
         }
 
@@ -132,12 +154,18 @@
                 <tr>
                     <td class="p-3">${o.date}</td>
                     <td class="p-3">${o.orderId}</td>
-                    <td class="p-3">${o.customer}</td>
+                    <td class="p-3 font-bold text-amber-300">${o.customer}</td>
                     <td class="p-3">${o.room}</td>
                     <td class="p-3">${o.items}</td>
-                    <td class="p-3">${o.total} THB</td>
+                    <td class="p-3 font-bold text-amber-400">${o.total} THB</td>
                     <td class="p-3">
-                        <select onchange="updateOrderStatus(${o.rowIndex}, this.value)" class="bg-slate-700 p-1 rounded text-xs">
+                        <select onchange="updateOrderField(${o.rowIndex}, 'paymentType', this.value)" class="bg-slate-700 p-1 rounded text-xs font-bold">
+                            <option value="လက်ငင်း" ${o.paymentType!=='အကြွေး'?'selected':''}>လက်ငင်း</option>
+                            <option value="အကြွေး" ${o.paymentType==='အကြွေး'?'selected':''}>အကြွေး</option>
+                        </select>
+                    </td>
+                    <td class="p-3">
+                        <select onchange="updateOrderField(${o.rowIndex}, 'deliveryStatus', this.value)" class="bg-slate-700 p-1 rounded text-xs font-bold">
                             <option value="မှာယူထားသည်" ${o.deliveryStatus==='မှာယူထားသည်'?'selected':''}>မှာယူထားသည်</option>
                             <option value="ပို့ဆောင်နေသည်" ${o.deliveryStatus==='ပို့ဆောင်နေသည်'?'selected':''}>ပို့ဆောင်နေသည်</option>
                             <option value="ပို့ဆောင်ပြီး" ${o.deliveryStatus==='ပို့ဆောင်ပြီး'?'selected':''}>ပို့ဆောင်ပြီး</option>
@@ -145,11 +173,11 @@
                         </select>
                     </td>
                 </tr>
-            `).join('') || `<tr><td colspan="7" class="p-4 text-center">အော်ဒါ မရှိပါ။</td></tr>`;
+            `).join('') || `<tr><td colspan="8" class="p-6 text-center text-slate-500">အော်ဒါ မရှိပါ။</td></tr>`;
         }
 
-        async function updateOrderStatus(rowIndex, status) {
-            await callBackend({ action: "updateOrderStatus", rowIndex, field: "deliveryStatus", value: status });
+        async function updateOrderField(rowIndex, field, value) {
+            await callBackend({ action: "updateOrderStatus", rowIndex, field, value });
             refreshAll();
         }
 
@@ -157,14 +185,15 @@
             document.getElementById("pendingCount").innerText = users ? users.length : 0;
             document.getElementById("approvalsTable").innerHTML = (users || []).map(u => `
                 <tr>
-                    <td class="p-3">${u.custCode}</td>
+                    <td class="p-3 font-bold text-amber-300">${u.custCode}</td>
                     <td class="p-3">${u.building}</td>
                     <td class="p-3">${u.roomNo}</td>
-                    <td class="p-3 text-center">
-                        <button onclick="updateUserStatus('${u.custCode}', 'approved')" class="bg-green-600 px-3 py-1 rounded text-white font-bold">ခွင့်ပြုမည်</button>
+                    <td class="p-3 text-center space-x-2">
+                        <button onclick="updateUserStatus('${u.custCode}', 'approved')" class="bg-green-600 px-3 py-1.5 rounded text-white font-bold text-xs">✅ ခွင့်ပြုမည်</button>
+                        <button onclick="updateUserStatus('${u.custCode}', 'rejected')" class="bg-red-600 px-3 py-1.5 rounded text-white font-bold text-xs">❌ ပယ်ချမည်</button>
                     </td>
                 </tr>
-            `).join('') || `<tr><td colspan="4" class="p-4 text-center">စောင့်ဆိုင်းနေသူ မရှိပါ။</td></tr>`;
+            `).join('') || `<tr><td colspan="4" class="p-6 text-center text-slate-500">စောင့်ဆိုင်းနေသူ မရှိပါ။</td></tr>`;
         }
 
         async function updateUserStatus(custCode, status) {
@@ -172,14 +201,54 @@
             refreshAll();
         }
 
+        function renderDebts(orders) {
+            const debtMap = {};
+            let grandTotal = 0;
+            if (orders) {
+                orders.forEach(o => {
+                    if (o.paymentType === 'အကြွေး' && o.deliveryStatus !== 'ကုန်သွားပြီး') {
+                        const amount = Number(o.total) || 0;
+                        grandTotal += amount;
+                        if (!debtMap[o.customer]) debtMap[o.customer] = { room: o.room, totalDebt: 0, count: 0 };
+                        debtMap[o.customer].totalDebt += amount;
+                        debtMap[o.customer].count += 1;
+                    }
+                });
+            }
+            document.getElementById("grandTotalDebt").innerText = grandTotal.toLocaleString() + " THB";
+            const grid = document.getElementById("debtCardsGrid");
+            const keys = Object.keys(debtMap);
+            if (keys.length === 0) {
+                grid.innerHTML = `<p class="text-xs text-slate-500">အကြွေးကျန်ရှိသူ မရှိပါ။</p>`;
+                return;
+            }
+            grid.innerHTML = keys.map(cust => `
+                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-amber-400 text-sm">${cust}</h3>
+                        <p class="text-xs text-slate-400">အခန်း: ${debtMap[cust].room} | အကြိမ်ရေ: ${debtMap[cust].count} ကြိမ်</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xl font-extrabold text-red-400">${debtMap[cust].totalDebt.toLocaleString()} THB</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function renderMenuManager(menus) {
-            document.getElementById("menuManageTable").innerHTML = (menus || []).map(m => `
+            const tbody = document.getElementById("menuManageTable");
+            tbody.innerHTML = (menus || []).map(m => `
                 <tr class="menu-row">
                     <td class="p-2"><input type="checkbox" class="menu-status" ${m.status?'checked':''}> ရရှိ</td>
-                    <td class="p-2"><input type="text" value="${m.code}" class="menu-code bg-slate-700 p-1 rounded w-16"></td>
-                    <td class="p-2"><input type="text" value="${m.name}" class="menu-name bg-slate-700 p-1 rounded w-32"></td>
-                    <td class="p-2"><input type="number" value="${m.price}" class="menu-price bg-slate-700 p-1 rounded w-16"></td>
-                    <td class="p-2"><input type="text" value="${m.image||''}" class="menu-image bg-slate-700 p-1 rounded w-48" placeholder="Image URL"></td>
+                    <td class="p-2"><input type="text" value="${m.code}" class="menu-code bg-slate-700 p-1 rounded w-16 text-xs text-white"></td>
+                    <td class="p-2"><input type="text" value="${m.name}" class="menu-name bg-slate-700 p-1 rounded w-32 text-xs text-white"></td>
+                    <td class="p-2"><input type="number" value="${m.price}" class="menu-price bg-slate-700 p-1 rounded w-16 text-xs text-white"></td>
+                    <td class="p-2">
+                        <input type="file" accept="image/*" class="menu-image-file text-xs text-slate-300">
+                        <input type="hidden" class="menu-image-url" value="${m.image||''}">
+                        ${m.image ? '<span class="text-[10px] text-green-400 block">✓ ပုံရှိပြီး</span>' : ''}
+                    </td>
+                    <td class="p-2"><input type="text" value="${m.tag||''}" class="menu-tag bg-slate-700 p-1 rounded w-20 text-xs text-white"></td>
                 </tr>
             `).join('');
         }
@@ -190,25 +259,62 @@
             row.className = "menu-row";
             row.innerHTML = `
                 <td class="p-2"><input type="checkbox" class="menu-status" checked> ရရှိ</td>
-                <td class="p-2"><input type="text" placeholder="ကုဒ်" class="menu-code bg-slate-700 p-1 rounded w-16"></td>
-                <td class="p-2"><input type="text" placeholder="ဟင်းမည်" class="menu-name bg-slate-700 p-1 rounded w-32"></td>
-                <td class="p-2"><input type="number" placeholder="ဈေး" class="menu-price bg-slate-700 p-1 rounded w-16"></td>
-                <td class="p-2"><input type="text" placeholder="Image URL" class="menu-image bg-slate-700 p-1 rounded w-48"></td>
+                <td class="p-2"><input type="text" placeholder="ကုဒ်" class="menu-code bg-slate-700 p-1 rounded w-16 text-xs text-white"></td>
+                <td class="p-2"><input type="text" placeholder="ဟင်းမည်" class="menu-name bg-slate-700 p-1 rounded w-32 text-xs text-white"></td>
+                <td class="p-2"><input type="number" placeholder="ဈေး" class="menu-price bg-slate-700 p-1 rounded w-16 text-xs text-white"></td>
+                <td class="p-2"><input type="file" accept="image/*" class="menu-image-file text-xs text-slate-300"><input type="hidden" class="menu-image-url" value=""></td>
+                <td class="p-2"><input type="text" placeholder="Tag" class="menu-tag bg-slate-700 p-1 rounded w-20 text-xs text-white"></td>
             `;
             tbody.appendChild(row);
         }
 
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        const maxW = 200;
+                        const scale = maxW / img.width;
+                        canvas.width = maxW;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL("image/jpeg", 0.6));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         async function saveMenuToSheet() {
             const rows = document.querySelectorAll(".menu-row");
-            const menus = Array.from(rows).map(r => ({
-                status: r.querySelector(".menu-status").checked,
-                code: r.querySelector(".menu-code").value.trim(),
-                name: r.querySelector(".menu-name").value.trim(),
-                price: Number(r.querySelector(".menu-price").value) || 0,
-                image: r.querySelector(".menu-image").value.trim()
-            }));
-            const res = await callBackend({ action: "saveMenus", menus });
-            if (res.status === "success") alert("✅ မီနူးများ သိမ်းဆည်းပြီးပါပြီ။");
+            const btn = document.getElementById("saveMenuBtn");
+            btn.disabled = true;
+            btn.innerText = "သိမ်းဆည်းနေပါသည်...";
+            try {
+                const menus = [];
+                for (let r of rows) {
+                    const fileInput = r.querySelector(".menu-image-file");
+                    let imgStr = r.querySelector(".menu-image-url").value;
+                    if (fileInput.files && fileInput.files[0]) {
+                        imgStr = await compressImage(fileInput.files[0]);
+                    }
+                    menus.push({
+                        status: r.querySelector(".menu-status").checked,
+                        code: r.querySelector(".menu-code").value.trim(),
+                        name: r.querySelector(".menu-name").value.trim(),
+                        price: Number(r.querySelector(".menu-price").value) || 0,
+                        image: imgStr,
+                        tag: r.querySelector(".menu-tag").value.trim()
+                    });
+                }
+                const res = await callBackend({ action: "saveMenus", menus });
+                if (res.status === "success") { alert("✅ မီနူးများ သိမ်းဆည်းပြီးပါပြီ။"); refreshAll(); }
+            } catch(e) { alert("Error: " + e.message); }
+            finally { btn.disabled = false; btn.innerText = "သိမ်းဆည်းမည်"; }
         }
 
         async function saveAnnouncementText() {
